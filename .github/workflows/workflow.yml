@@ -2,9 +2,28 @@ name: deploy-toy-website
 
 on: [workflow_dispatch]
 
+env:
+    AZURE_RESOURCEGROUP_NAME: gh-actions
+    AZURE_WEBAPP_NAME: webapp-gh-actions
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   say-hello:
     runs-on: ubuntu-latest
     steps:
-      - name: 'placeholder step'
-        run: echo "Hello world!"
+    - uses: actions/checkout@v2
+      with:
+        path: repo
+    - uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    - uses: azure/arm-deploy@v1
+      with:
+        resourceGroupName: ${{ env.AZURE_RESOURCEGROUP_NAME }}
+        template: ./deploy/main.bicep
+        parameters: environmentType=Test
